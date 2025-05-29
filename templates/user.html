@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+    <script src="{{ url_for('static', filename='js/user.js') }}"></script>
+</head>
+
+
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul>
+            {% for category, message in messages %}
+                <li class="flash-message {{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+    <header>
+        <div class="header-content">
+            <h1>Welcome, {{ username }}!</h1>
+        </div>
+    </header>
+    <div class="currency-row">
+        <div class="currency-display">
+            💰 Balance: ${{ user_balance }}
+            {% if user_balance == 0 %}
+                <p class="insufficient-funds">Insufficient funds</p>
+            {% endif %}
+        </div>
+        <button onclick="window.location.href='{{ url_for('index') }}'" class="user-btn">Home</button>
+
+        <form action="{{ url_for('logout') }}" method="POST">
+            <button class="log-out-btn">Log Out</button>
+        </form>
+    </div>
+
+    <div class="sports_tabs">
+        <ul>
+            <li><a href="{{ url_for('UserPage', username=username, category='NFL') }}" class="{{ 'active' if request.args.get('category') == 'NFL' else '' }}">NFL</a></li>
+            <li><a href="{{ url_for('UserPage', username=username, category='NBA') }}" class="{{ 'active' if request.args.get('category') == 'NBA' else '' }}">NBA</a></li>
+        </ul>
+    </div>
+
+    <div>
+        <h2>Available Sports Matches</h2>
+        {% if request.args.get('category') %}
+            {% if data %}
+                <div class="container">
+                    {% for event in data %}
+                        <div class="match">
+                            <div class="match-header">{{ event.away_team }} vs {{ event.home_team }}</div>
+                            <div class="match-teams">
+                                {{ event.home_team }} Price: {{ event.home_team_price }} <br>
+                                {{ event.away_team }} Price: {{ event.away_team_price }}
+                            </div>
+                            <div class="date">Match Date: {{ event.match_date }}</div>
+
+                            <button class="bet-toggle" onclick="openBetModal('{{ event.id }}', '{{ event.home_team }}', '{{ event.away_team }}', '{{ event.home_team_price }}', '{{ event.away_team_price }}')">
+                                Place Bet
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No games available for the selected category.</p>
+            {% endif %}
+        {% else %}
+            <p>Please select a sport category to view available matches.</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <h2>Your Bet History</h2>
+        {% if user_bets %}
+            <table class="bet-history">
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th>Bet Amount</th>
+                        <th>Status</th>
+                        <th>Potential Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bet in user_bets %}
+                    <tr>
+                        <td>{{ bet['team'] }}</td>
+                        <td>${{ bet['amount'] }}</td>
+                        <td>{{ bet['bet_status'] }}</td>
+                        <td>${{ bet['potential_payout'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-bets-message">No bets placed yet.</p>
+        {% endif %}
+    </div>
+
+    <div id="bet-modal-overlay" onclick="closeBetModal()"></div>
+    <div id="bet-modal">
+        <h3>Place Your Bet</h3>
+        <form action="/place_bet?category={{ request.args.get('category') }}" method="post">
+            <input type="hidden" name="user_id" value="{{ username }}">
+            <input type="hidden" id="match-id" name="match_id">
+            <input type="hidden" id="match-id-hidden" name="id"> <!-- Hidden ID Field -->
+            <input type="hidden" id="home-odds-field" name="home_odds">
+            <input type="hidden" id="away-odds-field" name="away_odds">
+            <input type="hidden" id="home-team" name="home_team">
+            <input type="hidden" id="away-team" name="away_team">
+
+            <label for="team-select">Choose Team:</label>
+            <select id="team-select" name="team" required></select>
+
+            <label for="amount">Bet Amount:</label>
+            <input type="number" id="amount" name="amount" min="1" max="{{ user_balance }}" required>
+
+            <div>
+                <strong>Odds:</strong>
+                <span id="home-odds"></span> (Home Team) /
+                <span id="away-odds"></span> (Away Team)
+            </div>
+
+            <button type="submit">Confirm Bet</button>
+            <button type="button" onclick="closeBetModal()">Cancel</button>
+        </form>
+    </div>
+</body>
+</html>

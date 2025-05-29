@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sign_in.css') }}">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Pop Up -->
+        <div id="modal" class="modal">
+                <div class="modal-content">
+                        <span class="close-btn" id="closeModal">&times;</span>
+                        <h2>Welcome to BetBuddy!</h2>
+                        <p>Make sure to retrieve your virtual money after the game concludes!</p>
+                        <p><strong>Note:</strong> Virtual money will automatically be removed <strong>3 days</strong> after the game
+                        <p>Thank you for understanding, and enjoy using <strong>BetBuddy</strong>!</p>
+                </div>
+        </div>
+
+        <!-- Header -->
+        
+        <header>
+            <h1>BetBuddy</h1>
+        </header>
+        <h2>User Login</h2>
+
+        <!-- Display success message from signup if it exists -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Display login error message if username or password is incorrect -->
+        <div class="flash-messages">
+            {% if error_message %}
+                <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Form action updated to use Flask's url_for for dynamic URL resolution -->
+        <form action="{{ url_for('loginprocess') }}" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+            <!-- Back button now links directly to the home page -->
+            <a href="{{ url_for('index') }}" class="back-btn">
+                <button type="button" class="back-btn">Back</button>
+            </a>
+        </form>
+
+        <!-- Forgot Password Link -->
+        <div class="forgot-password">
+            <p><a href="{{ url_for('forget_password') }}">Forgot Password?</a></p>
+            <p>Don't have an account? <a href="{{ url_for('signup') }}">Create yours now</a></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sign_in.js') }}"></script>
+</body>
+</html>
